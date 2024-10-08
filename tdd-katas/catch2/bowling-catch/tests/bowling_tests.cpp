@@ -6,19 +6,25 @@ using namespace std;
 class BowlingGame
 {
 private:
-    //int score_val = 0;
+    int score_val = 0;
 
 public:
     int score() const
     {
-        return 0;
+        return score_val;
     }
 
-    void roll(int val)
+    void roll(int pins)
     {
-        //score_val += val;
+        score_val += pins;
     }
 };
+
+void roll_many(BowlingGame& game, int count, int pins)
+{
+    for(int i = 0; i < count; ++i)
+        game.roll(pins);
+}
 
 TEST_CASE("When game starts score is zero")
 {
@@ -31,8 +37,16 @@ TEST_CASE("When all rolls are zero score is zero")
 {
     BowlingGame game;
 
-    for(int i = 0; i < 20; ++i)
-        game.roll(0);
+    roll_many(game, 20, 0);
 
     REQUIRE(game.score() == 0);
+}
+
+TEST_CASE("When rolls are not zero score is valid")
+{
+    BowlingGame game;
+
+    roll_many(game, 20, 1);
+
+    REQUIRE(game.score() == 20);
 }
