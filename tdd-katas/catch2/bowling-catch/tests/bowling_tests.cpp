@@ -12,7 +12,7 @@ class BowlingGame
     static constexpr size_t frames_count = 10;
 
 private:
-    std::array<unsigned int, 20> pins_{};
+    std::array<unsigned int, 21> pins_{};
 
     size_t roll_index_{};
 
@@ -132,4 +132,34 @@ TEST_CASE("When strike two next rolls are counted twice")
     roll_many(game, 18, 1);
 
     REQUIRE(game.score() == 30);
+}
+
+TEST_CASE("When spare in last frame extra roll is allowed")
+{
+    BowlingGame game;
+
+    roll_many(game, 18, 1);
+
+    // spare
+    game.roll(5);
+    game.roll(5);
+
+    game.roll(6); // extra roll
+
+    REQUIRE(game.score() == 34);
+}
+
+TEST_CASE("When strike in last frame two extra rolls are allowed")
+{
+    BowlingGame game;
+
+    roll_many(game, 18, 1);
+
+    // strike
+    game.roll(10);
+    
+    game.roll(6); // extra roll
+    game.roll(6); // extra roll
+
+    REQUIRE(game.score() == 40);
 }
