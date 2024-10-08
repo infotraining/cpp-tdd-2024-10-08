@@ -1,27 +1,24 @@
+#include "bowling.hpp"
+
+#include <array>
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/generators/catch_generators_all.hpp>
-#include "bowling.hpp"
-#include <array>
 
 using namespace std;
 
 class BowlingGame
 {
     static constexpr size_t max_pins_in_frame = 10;
+    static constexpr size_t frames_count = 10;
 
 private:
     std::array<unsigned int, 20> pins_{};
-    
-    size_t roll_index_{};
 
-    size_t spare_bonus(size_t roll_index) const
-    {
-        return pins_[roll_index + 2];
-    }
+    size_t roll_index_{};
 
     size_t frame_score(size_t roll_index) const
     {
-        return pins_[roll_index] + pins_[roll_index+1];
+        return pins_[roll_index] + pins_[roll_index + 1];
     }
 
     bool is_spare(size_t roll_index) const
@@ -29,16 +26,41 @@ private:
         return frame_score(roll_index) == max_pins_in_frame;
     }
 
+    size_t spare_bonus(size_t roll_index) const
+    {
+        return pins_[roll_index + 2];
+    }
+
+    bool is_strike(size_t roll_index) const
+    {
+        return pins_[roll_index] == max_pins_in_frame;
+    }
+
+    size_t strike_bonus(size_t roll_index) const
+    {
+        return pins_[roll_index + 1] + pins_[roll_index + 2];
+    }
+
 public:
     int score() const
     {
         size_t result{};
+        size_t roll_index{};
 
-        for(size_t i = 0; i < 20; i += 2)
+        for (size_t frame_index = 0; frame_index < frames_count; ++frame_index)
         {
-            if (is_spare(i))
-                result += spare_bonus(i); 
-            result += frame_score(i) ;
+            if (is_strike(roll_index))
+            {
+                result += max_pins_in_frame + strike_bonus(roll_index);
+                ++roll_index;
+            }
+            else
+            {
+                result += frame_score(roll_index);
+                if (is_spare(roll_index))
+                    result += spare_bonus(roll_index);
+                roll_index += 2;
+            }
         }
 
         return result;
@@ -53,7 +75,7 @@ public:
 
 void roll_many(BowlingGame& game, int count, int pins)
 {
-    for(int i = 0; i < count; ++i)
+    for (int i = 0; i < count; ++i)
         game.roll(pins);
 }
 
@@ -86,12 +108,12 @@ TEST_CASE("When spare next roll is counted twice")
 {
     BowlingGame game;
 
-    auto params = GENERATE(table<int, int>({ {5, 5}, {3, 7}, {8, 2}, {1, 9} }));
+    auto params = GENERATE(table<int, int>({{5, 5}, {3, 7}, {8, 2}, {1, 9}}));
 
     auto [roll_1, roll_2] = params;
 
     DYNAMIC_SECTION("rolls for spare (" << roll_1 << ", " << roll_2 << ")")
-    {  
+    {
         game.roll(roll_1);
         game.roll(roll_2);
 
@@ -99,4 +121,15 @@ TEST_CASE("When spare next roll is counted twice")
 
         REQUIRE(game.score() == 29);
     }
+}
+
+TEST_CASE("When strike two next rolls are counted twice")
+{
+    BowlingGame game;
+
+    game.roll(10); // strike
+
+    roll_many(game, 18, 1);
+
+    REQUIRE(game.score() == 30);
 }
