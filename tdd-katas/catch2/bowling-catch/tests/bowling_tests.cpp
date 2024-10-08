@@ -79,14 +79,14 @@ void roll_many(BowlingGame& game, int count, int pins)
         game.roll(pins);
 }
 
-TEST_CASE("When game starts score is zero")
+TEST_CASE("When game starts score is zero", "[Start#1][BowlingGame]")
 {
     BowlingGame game;
 
     REQUIRE(game.score() == 0);
 }
 
-TEST_CASE("When all rolls are zero score is zero")
+TEST_CASE("When all rolls are zero score is zero", "[RegularGame#2][BowlingGame]")
 {
     BowlingGame game;
 
