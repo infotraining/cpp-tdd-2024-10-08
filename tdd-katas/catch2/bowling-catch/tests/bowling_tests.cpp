@@ -134,32 +134,38 @@ TEST_CASE("When strike two next rolls are counted twice")
     REQUIRE(game.score() == 30);
 }
 
-TEST_CASE("When spare in last frame extra roll is allowed")
+TEST_CASE("Last frame")
 {
+    // Arrange SUT
     BowlingGame game;
-
     roll_many(game, 18, 1);
 
-    // spare
-    game.roll(5);
-    game.roll(5);
+    SECTION("spare - extra roll is allowed")
+    {
+        game.roll(5);
+        game.roll(5);
 
-    game.roll(6); // extra roll
+        game.roll(6); // extra roll
 
-    REQUIRE(game.score() == 34);
+        REQUIRE(game.score() == 34);
+    }
+
+    SECTION("strike - two extra rolls are allowed")
+    {
+        game.roll(10);
+
+        game.roll(6); // extra roll
+        game.roll(6); // extra roll
+
+        REQUIRE(game.score() == 40);
+    }
 }
 
-TEST_CASE("When strike in last frame two extra rolls are allowed")
+TEST_CASE("Perfect game")
 {
     BowlingGame game;
 
-    roll_many(game, 18, 1);
+    roll_many(game, 12, 10);
 
-    // strike
-    game.roll(10);
-    
-    game.roll(6); // extra roll
-    game.roll(6); // extra roll
-
-    REQUIRE(game.score() == 40);
+    REQUIRE(game.score() == 300);
 }
