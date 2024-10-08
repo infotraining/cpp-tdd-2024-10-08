@@ -3,7 +3,19 @@
 
 using namespace std;
 
-TEST_CASE("simple test")
+class BowlingGame
 {
-    REQUIRE(1 == 1);
+public:
+    int score() const
+    {
+        return 0;
+    }
+};
+
+TEST_CASE("When game starts score is zero")
+{
+    BowlingGame game;
+
+    REQUIRE(game.score() == 0);
 }
+
