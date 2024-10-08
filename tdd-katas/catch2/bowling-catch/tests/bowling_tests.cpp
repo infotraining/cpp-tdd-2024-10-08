@@ -1,4 +1,5 @@
 #include <catch2/catch_test_macros.hpp>
+#include <catch2/generators/catch_generators_all.hpp>
 #include "bowling.hpp"
 #include <array>
 
@@ -85,10 +86,17 @@ TEST_CASE("When spare next roll is counted twice")
 {
     BowlingGame game;
 
-    game.roll(5);
-    game.roll(5);
+    auto params = GENERATE(table<int, int>({ {5, 5}, {3, 7}, {8, 2}, {1, 9} }));
 
-    roll_many(game, 18, 1);
+    auto [roll_1, roll_2] = params;
 
-    REQUIRE(game.score() == 29);
+    DYNAMIC_SECTION("rolls for spare (" << roll_1 << ", " << roll_2 << ")")
+    {  
+        game.roll(roll_1);
+        game.roll(roll_2);
+
+        roll_many(game, 18, 1);
+
+        REQUIRE(game.score() == 29);
+    }
 }
