@@ -39,31 +39,39 @@ enum class Direction
 class Snake
 {
 private:
-    Point head_;
+    std::vector<Point> segments_;
 
 public:
-    Snake(Point);
+    explicit Snake(Point head)
+        : segments_{head}
+    {
+    }
+
+    Snake(std::initializer_list<Point> segments)
+        : segments_{segments}
+    {
+    }
 
     const Point& head() const
     {
-        return head_;
+        return segments_.front();
     }
 
-    size_t segments() const
+    const std::vector<Point>& segments() const
     {
-        return 1;
+        return segments_;
     }
 
     Direction direction() const
     {
         return Direction::Up;
     }
-};
 
-Snake::Snake(Point head)
-    : head_{head}
-{
-}
+    bool operator==(const Snake& other) const
+    {
+        return segments_ == other.segments_;
+    }
+};
 
 class SnakeGame
 {
@@ -74,7 +82,7 @@ private:
 
 public:
     SnakeGame(int width, int height)
-        : snake_(Point(width_ / 2, height_ / 2))
+        : snake_{Point(width_ / 2, height_ / 2)}
         , width_{width}
         , height_{height}
     {
@@ -94,7 +102,7 @@ TEST_CASE("Snake", "[Snake][Construction]")
 {
     SECTION("constructed with Point")
     {
-        Snake snake(Point(10, 5));
+        Snake snake{Point(10, 5)};
 
         SECTION("has head at specified location")
         {
@@ -103,7 +111,22 @@ TEST_CASE("Snake", "[Snake][Construction]")
 
         SECTION("has one segment")
         {
-            REQUIRE(snake.segments() == 1);
+            REQUIRE(snake.segments() == std::vector{Point(10, 5)});
+        }
+    }
+
+    SECTION("constructed with segments")
+    {
+        Snake snake = {Point(10, 5), Point(10, 6), Point(10, 7)};
+
+        SECTION("head is at the position of first segment")
+        {
+            REQUIRE(snake.head() == Point(10, 5));
+        }
+
+        SECTION("has multiple segments")
+        {
+            REQUIRE(snake.segments() == std::vector{Point(10, 5), Point(10, 6), Point(10, 7)});
         }
     }
 }
@@ -121,12 +144,7 @@ TEST_CASE("Starting the game", "[SnakeGame][Start]")
 
             SECTION("the snake is at the center of the board")
             {
-                REQUIRE(game.snake().head() == Point(15, 10));
-            }
-
-            SECTION("the snake has one segment")
-            {
-                REQUIRE(game.snake().segments() == 1);
+                REQUIRE(game.snake() == Snake{Point(15, 10)});
             }
 
             SECTION("snake's directions is Up")
