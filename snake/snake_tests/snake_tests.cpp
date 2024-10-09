@@ -31,6 +31,11 @@ struct Point
     }
 };
 
+enum class Direction
+{
+    Up
+};
+
 class Snake
 {
 private:
@@ -47,6 +52,11 @@ public:
     size_t segments() const
     {
         return 1;
+    }
+
+    Direction direction() const
+    {
+        return Direction::Up;
     }
 };
 
@@ -77,6 +87,8 @@ public:
         return snake_;
     }
 };
+
+CATCH_REGISTER_ENUM(Direction, Direction::Up);
 
 TEST_CASE("Snake", "[Snake][Construction]")
 {
@@ -113,6 +125,11 @@ TEST_CASE("Starting the game", "[SnakeGame][Start]")
         SECTION("the snake has one segment")
         {
             REQUIRE(game.snake().segments() == 1);
+        }
+
+        SECTION("snake's directions is Up")
+        {
+            REQUIRE(game.snake().direction() == Direction::Up);
         }
     }
 
