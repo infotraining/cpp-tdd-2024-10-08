@@ -110,37 +110,40 @@ TEST_CASE("Snake", "[Snake][Construction]")
 
 TEST_CASE("Starting the game", "[SnakeGame][Start]")
 {
-    SECTION("When game starts with valid dimensions of board")
+    SECTION("When game starts")
     {
-        constexpr int width = 30;
-        constexpr int height = 20;
-
-        SnakeGame game(width, height);
-
-        SECTION("the snake is at the center of the board")
+        SECTION("with valid dimensions of board")
         {
-            REQUIRE(game.snake().head() == Point(15, 10));
+            constexpr int width = 30;
+            constexpr int height = 20;
+
+            SnakeGame game(width, height);
+
+            SECTION("the snake is at the center of the board")
+            {
+                REQUIRE(game.snake().head() == Point(15, 10));
+            }
+
+            SECTION("the snake has one segment")
+            {
+                REQUIRE(game.snake().segments() == 1);
+            }
+
+            SECTION("snake's directions is Up")
+            {
+                REQUIRE(game.snake().direction() == Direction::Up);
+            }
         }
 
-        SECTION("the snake has one segment")
+        SECTION("with invalid dimensions of the board")
         {
-            REQUIRE(game.snake().segments() == 1);
-        }
+            constexpr int width = 30;
+            constexpr int height = 0;
 
-        SECTION("snake's directions is Up")
-        {
-            REQUIRE(game.snake().direction() == Direction::Up);
-        }
-    }
-
-    SECTION("When game starts with invalid dimensions")
-    {
-        constexpr int width = 30;
-        constexpr int height = 0;
-
-        SECTION("throws invalid argument")
-        {
-            REQUIRE_THROWS_AS(SnakeGame(width, height), std::invalid_argument);
+            SECTION("throws invalid argument exception")
+            {
+                REQUIRE_THROWS_AS(SnakeGame(width, height), std::invalid_argument);
+            }
         }
     }
 }
