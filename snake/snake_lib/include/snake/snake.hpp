@@ -45,6 +45,7 @@ class Board
 private:
     int w_;
     int h_;
+    std::vector<Point> fruits_;
 
 public:
     Board(int w, int h)
@@ -56,6 +57,27 @@ public:
     bool is_hitting_wall(Point head)
     {
         return head.x == 0 || head.y == 0 || head.x == w_ || head.y == h_;
+    }
+
+    void add_fruit(Point point)
+    {
+        fruits_.push_back(point);
+    }
+
+    const std::vector<Point>& fruits()
+    {
+        return fruits_;
+    }
+
+    [[nodiscard]] bool try_eat_fruit(Point fruit)
+    {
+        auto it = std::find(fruits_.begin(), fruits_.end(), fruit);
+        if (it != fruits_.end())
+        {
+            fruits_.erase(it);
+            return true;
+        }
+        return false;
     }
 };
 
@@ -115,7 +137,9 @@ public:
         Point new_head = calculate_new_head(direction);
 
         segments_.insert(segments_.begin(), new_head);
-        segments_.pop_back();
+
+        if (board_ && !board_->try_eat_fruit(new_head))
+            segments_.pop_back();
 
         if (board_ && board_->is_hitting_wall(new_head))
         {

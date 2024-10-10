@@ -47,6 +47,8 @@ TEST_CASE("Snake", "[Snake][Construction]")
 TEST_CASE("Snake's move", "[Snake][Move]")
 {
     Snake snake = {Point(5, 5)};
+    Board board(100, 100);
+    snake.set_board(board);
 
     auto params = GENERATE(table<Direction, Snake>({{Direction::Up, Snake{Point(5, 4)}},
         {Direction::Down, Snake{Point(5, 6)}},
@@ -71,7 +73,7 @@ TEST_CASE("Snake's move", "[Snake][Move]")
     }
 }
 
-TEST_CASE("Hitting a wall")
+TEST_CASE("Hitting a wall", "[Snake][Board]")
 {
     Board board(10, 10);
 
@@ -95,6 +97,31 @@ TEST_CASE("Hitting a wall")
             {
                 REQUIRE(snake.is_alive() == false);
             }
+        }
+    }
+}
+
+TEST_CASE("Eating apple", "[Snake][Board]")
+{
+    Snake snake = {Point(10, 12), Point(10, 11), Point(10, 10)};
+    Board board(20, 20);
+    snake.set_board(board);
+
+    board.add_fruit(Point(10, 13));
+    CHECK(board.fruits().size() == 1); // guard
+
+    SECTION("when snake eats apple")
+    {
+        snake.move(Direction::Down);
+
+        SECTION("apple disappears from board")
+        {
+            REQUIRE(board.fruits().empty());
+        }
+
+        SECTION("snake grows by one segment")
+        {
+            REQUIRE(snake == Snake{Point(10, 13), Point(10, 12), Point(10, 11), Point(10, 10)});
         }
     }
 }
