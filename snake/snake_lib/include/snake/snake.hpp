@@ -52,6 +52,18 @@ public:
         : w_{w}
         , h_{h}
     {
+        if (w <= 0 || h <= 0)
+            throw std::invalid_argument("Invalid dimensions of the board");
+    }
+
+    int width() const
+    {
+        return w_;
+    }
+
+    int height() const
+    {
+        return h_;
     }
 
     bool is_hitting_wall(Point head)
@@ -137,7 +149,7 @@ public:
         Point new_head = calculate_new_head(direction);
 
         segments_.insert(segments_.begin(), new_head);
-        
+
         if (board_ && !board_->try_eat_fruit(new_head))
             segments_.pop_back();
 
@@ -192,26 +204,51 @@ private:
     }
 };
 
+class Terminal
+{
+public:
+    virtual void render_snake(const Snake& snake) = 0;
+    virtual void render_fruits(const std::vector<Point>& fruits) = 0;
+    virtual ~Terminal() { }
+};
+
 class SnakeGame
 {
 private:
-    int width_;
-    int height_;
+    Board board_;
     Snake snake_;
+    Terminal* terminal_;
 
 public:
     SnakeGame(int width, int height)
-        : snake_{Point(width_ / 2, height_ / 2)}
-        , width_{width}
-        , height_{height}
+        : board_{width, height}
+        , snake_{Point(board_.width() / 2, board_.height() / 2)}
     {
-        if (width <= 0 || height <= 0)
-            throw std::invalid_argument("Invalid dimensions of the board");
+    }
+
+    SnakeGame(Board board)
+        : board_{std::move(board)}
+        , snake_{Point(board_.width() / 2, board_.height() / 2)}
+    {
+    }
+
+    void set_terminal(Terminal& terminal)
+    {
+        terminal_ = &terminal;
     }
 
     const Snake& snake() const
     {
         return snake_;
+    }
+
+    void run()
+    {
+        assert(terminal_);
+
+        terminal_->render_snake(snake_);
+
+        terminal_->render_fruits(board_.fruits());
     }
 };
 

@@ -170,3 +170,41 @@ TEST_CASE("Starting the game", "[SnakeGame][Start]")
         }
     }
 }
+
+class MockTerminal : public Terminal
+{
+public:
+    MAKE_MOCK1(render_snake, void(const Snake&), override);
+    MAKE_MOCK1(render_fruits, void(const std::vector<Point>& fruits));
+};
+
+TEST_CASE("Rendering the snake", "[ConsoleGame][Terminal][Run]")
+{
+    constexpr int width = 30;
+    constexpr int height = 20;
+
+    SnakeGame game(width, height);
+    MockTerminal terminal;
+    game.set_terminal(terminal);
+
+    // requirements
+    ALLOW_CALL(terminal, render_fruits(trompeloeil::_));
+    REQUIRE_CALL(terminal, render_snake(Snake{Point{15, 10}}));
+    
+    game.run();
+} // validation of requirements (assert on mock)
+
+TEST_CASE("Rendering apples", "[ConsoleGame][Terminal][Run]")
+{
+    Board board(20, 20);
+    board.add_fruit({2, 2});
+    board.add_fruit({3, 3});
+    
+    SnakeGame game(board);
+    MockTerminal terminal;
+    game.set_terminal(terminal);
+
+    ALLOW_CALL(terminal, render_snake(trompeloeil::_));
+    REQUIRE_CALL(terminal, render_fruits(std::vector{Point{2, 2}, Point{3, 3}}));
+    game.run();
+}
