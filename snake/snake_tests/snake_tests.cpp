@@ -101,6 +101,16 @@ TEST_CASE("Hitting a wall", "[Snake][Board]")
     }
 }
 
+TEST_CASE("Snake eats itself")
+{
+    Snake snake = {Point(5, 6), Point(6, 6), Point(7, 6), Point(7, 5), Point(6, 5), Point(5, 5), Point(4, 5)};
+    CHECK(snake.is_alive());
+
+    snake.move(Direction::Up);
+
+    REQUIRE(snake.is_alive() == false);
+}
+
 TEST_CASE("Eating apple", "[Snake][Board]")
 {
     Snake snake = {Point(10, 12), Point(10, 11), Point(10, 10)};

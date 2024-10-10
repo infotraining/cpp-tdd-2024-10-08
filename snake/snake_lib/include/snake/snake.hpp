@@ -137,11 +137,11 @@ public:
         Point new_head = calculate_new_head(direction);
 
         segments_.insert(segments_.begin(), new_head);
-
+        
         if (board_ && !board_->try_eat_fruit(new_head))
             segments_.pop_back();
 
-        if (board_ && board_->is_hitting_wall(new_head))
+        if (is_eating_itself(new_head) || (board_ && board_->is_hitting_wall(new_head)))
         {
             is_alive_ = false;
         }
@@ -184,6 +184,11 @@ private:
         }
 
         return new_head;
+    }
+
+    bool is_eating_itself(Point new_head)
+    {
+        return std::count(segments_.begin(), segments_.end(), new_head) > 1;
     }
 };
 
