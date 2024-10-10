@@ -70,7 +70,7 @@ TEST_F(OrderStateTests, OrderIsNotFilledIfNotEnoughInWarehouse)
     ASSERT_FALSE(order.is_filled());
 }
 
-TEST_F(OrderStateTests, IfEnoughInStockItemsAreTransferedFromWarehouse)
+TEST_F(OrderStateTests, IfEnoughInStockItemsAreTransferredFromWarehouse)
 {
     Order order{talisker, 50u};
 
@@ -79,7 +79,7 @@ TEST_F(OrderStateTests, IfEnoughInStockItemsAreTransferedFromWarehouse)
     ASSERT_EQ(warehouse_.get_inventory(talisker), 0u);
 }
 
-TEST_F(OrderStateTests, IfNotEnoughInStockItemsAreNotTransferedFromWarehouse)
+TEST_F(OrderStateTests, IfNotEnoughInStockItemsAreNotTransferredFromWarehouse)
 {
     Order order{talisker, 51};
 

@@ -12,7 +12,7 @@
 
 struct Point
 {
-    Point(int x, int y)
+    Point(int x = 0, int y= 0)
         : x{x}
         , y{y}
     {
@@ -34,13 +34,14 @@ struct Point
 
 enum class Direction
 {
-    Up
+    Up, Down, Left, Right
 };
 
 class Snake
 {
 private:
     std::vector<Point> segments_;
+    Direction direction_;
 
 public:
     explicit Snake(Point head)
@@ -65,12 +66,60 @@ public:
 
     Direction direction() const
     {
-        return Direction::Up;
+        return direction_;
     }
 
     bool operator==(const Snake& other) const
     {
         return segments_ == other.segments_;
+    }
+
+    void move(Direction direction)
+    {
+        direction_ = direction;
+
+        Point new_head = calculate_new_head(direction);
+        
+        segments_.insert(segments_.begin(), new_head);
+        segments_.pop_back();
+    }
+
+    friend std::ostream& operator<<(std::ostream& out, const Snake& snake)
+    {
+        out << "Snake{ ";
+
+        for(const auto& segment : snake.segments_)
+            out << segment << " ";
+
+        out << "}";
+        return out;
+    }
+private:
+    Point calculate_new_head(Direction direction)
+    {
+        const Point& old_head = segments_.front();
+        Point new_head{};
+
+        switch (direction)
+        {
+        case Direction::Up :
+            new_head = {old_head.x,old_head.y -1};
+            break;
+        case Direction::Down :
+            new_head = {old_head.x,old_head.y +1};
+            break;
+        case Direction::Left :
+            new_head = {old_head.x -1,old_head.y};
+            break;
+        case Direction::Right :
+            new_head = {old_head.x +1,old_head.y};
+            break;
+        
+        default:
+            break;
+        }
+
+        return new_head;
     }
 };
 

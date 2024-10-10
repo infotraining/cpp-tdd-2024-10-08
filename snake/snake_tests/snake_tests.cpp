@@ -9,7 +9,7 @@
 
 using namespace std;
 
-CATCH_REGISTER_ENUM(Direction, Direction::Up);
+CATCH_REGISTER_ENUM(Direction, Direction::Up, Direction::Down, Direction::Left, Direction::Right);
 
 TEST_CASE("Snake", "[Snake][Construction]")
 {
@@ -40,6 +40,35 @@ TEST_CASE("Snake", "[Snake][Construction]")
         SECTION("has multiple segments")
         {
             REQUIRE(snake.segments() == std::vector{Point(10, 5), Point(10, 6), Point(10, 7)});
+        }
+    }
+}
+
+TEST_CASE("Snake's move")
+{
+    Snake snake = { Point(5, 5) };
+
+    auto params = GENERATE(table<Direction, Snake>({
+        {Direction::Up, Snake{Point(5,4)}},
+        {Direction::Down, Snake{Point(5,6)}},
+        {Direction::Left, Snake{Point(4,5)}},
+        {Direction::Right, Snake{Point(6,5)}}
+    }));
+
+    auto [direction, expected_snake] = params;
+
+    DYNAMIC_SECTION("move in " << Catch::StringMaker<Direction>::convert(direction) << " direction")
+    {
+        snake.move(direction);
+
+        SECTION("segments are moved")
+        {
+            REQUIRE(snake == expected_snake);
+        }
+
+        SECTION("direction is set")
+        {
+            REQUIRE(snake.direction() == direction);
         }
     }
 }
@@ -78,3 +107,4 @@ TEST_CASE("Starting the game", "[SnakeGame][Start]")
         }
     }
 }
+
