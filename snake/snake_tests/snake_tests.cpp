@@ -247,3 +247,22 @@ TEST_CASE("Run Loops until Ctrl-Q")
 
     game.run();
 }
+
+TEST_CASE("SnakeGame - key moves snake")
+{
+    Board board(20, 20);   
+    SnakeGame game(board);
+    MockTerminal terminal;
+    game.set_terminal(terminal);
+
+    using trompeloeil::_;
+    ALLOW_CALL(terminal, render_snake(_));
+    ALLOW_CALL(terminal, render_fruits(_));
+    ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
+
+    REQUIRE_CALL(terminal, read_key()).RETURN(Terminal::Key::Left);
+
+    game.run();
+
+    REQUIRE(game.snake() == Snake{Point(9, 10)});
+}

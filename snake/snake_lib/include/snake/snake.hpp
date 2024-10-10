@@ -209,7 +209,7 @@ class Terminal
 public:
     enum class Key
     {
-        Up, Ctrl_Q
+        Up, Down, Left, Right, Ctrl_Q
     };
 
     virtual void render_snake(const Snake& snake) = 0;
@@ -230,12 +230,14 @@ public:
         : board_{width, height}
         , snake_{Point(board_.width() / 2, board_.height() / 2)}
     {
+        snake_.set_board(board_);
     }
 
     SnakeGame(Board board)
         : board_{std::move(board)}
         , snake_{Point(board_.width() / 2, board_.height() / 2)}
     {
+        snake_.set_board(board_);
     }
 
     void set_terminal(Terminal& terminal)
@@ -259,8 +261,23 @@ public:
 
             Terminal::Key key = terminal_->read_key();
 
-            if (key == Terminal::Key::Ctrl_Q)
-                return;
+            switch(key)
+            {
+                case Terminal::Key::Left: 
+                    snake_.move(Direction::Left);
+                    break;
+                case Terminal::Key::Right: 
+                    snake_.move(Direction::Right);
+                    break;
+                case Terminal::Key::Up:
+                    snake_.move(Direction::Up);
+                    break;
+                case Terminal::Key::Down:
+                    snake_.move(Direction::Down);
+                    break;
+                case Terminal::Key::Ctrl_Q:
+                    return;                
+            }
         }
     }
 };
