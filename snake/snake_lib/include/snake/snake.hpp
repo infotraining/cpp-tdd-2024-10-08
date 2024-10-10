@@ -207,8 +207,14 @@ private:
 class Terminal
 {
 public:
+    enum class Key
+    {
+        Up, Ctrl_Q
+    };
+
     virtual void render_snake(const Snake& snake) = 0;
     virtual void render_fruits(const std::vector<Point>& fruits) = 0;
+    virtual Key read_key() = 0;
     virtual ~Terminal() { }
 };
 
@@ -246,9 +252,16 @@ public:
     {
         assert(terminal_);
 
-        terminal_->render_snake(snake_);
+        while (true)
+        {
+            terminal_->render_snake(snake_);
+            terminal_->render_fruits(board_.fruits());
 
-        terminal_->render_fruits(board_.fruits());
+            Terminal::Key key = terminal_->read_key();
+
+            if (key == Terminal::Key::Ctrl_Q)
+                return;
+        }
     }
 };
 

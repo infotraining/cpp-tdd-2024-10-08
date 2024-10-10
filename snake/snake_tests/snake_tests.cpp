@@ -175,7 +175,8 @@ class MockTerminal : public Terminal
 {
 public:
     MAKE_MOCK1(render_snake, void(const Snake&), override);
-    MAKE_MOCK1(render_fruits, void(const std::vector<Point>& fruits));
+    MAKE_MOCK1(render_fruits, void(const std::vector<Point>& fruits), override);
+    MAKE_MOCK0(read_key, Terminal::Key(), override);
 };
 
 TEST_CASE("Rendering the snake", "[ConsoleGame][Terminal][Run]")
@@ -189,6 +190,7 @@ TEST_CASE("Rendering the snake", "[ConsoleGame][Terminal][Run]")
 
     // requirements
     ALLOW_CALL(terminal, render_fruits(trompeloeil::_));
+    ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
     REQUIRE_CALL(terminal, render_snake(Snake{Point{15, 10}}));
     
     game.run();
@@ -205,6 +207,43 @@ TEST_CASE("Rendering apples", "[ConsoleGame][Terminal][Run]")
     game.set_terminal(terminal);
 
     ALLOW_CALL(terminal, render_snake(trompeloeil::_));
+    ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
     REQUIRE_CALL(terminal, render_fruits(std::vector{Point{2, 2}, Point{3, 3}}));
+    game.run();
+}
+
+TEST_CASE("Run reads key", "[ConsoleGame][Terminal][Run]")
+{
+    Board board(20, 20);   
+    SnakeGame game(board);
+    MockTerminal terminal;
+    game.set_terminal(terminal);
+
+    ALLOW_CALL(terminal, render_fruits(trompeloeil::_));
+    ALLOW_CALL(terminal, render_snake(trompeloeil::_));
+    REQUIRE_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
+    game.run();
+}
+
+TEST_CASE("Run Loops until Ctrl-Q")
+{
+    Board board(20, 20);   
+    SnakeGame game(board);
+    MockTerminal terminal;
+    game.set_terminal(terminal);
+
+    using trompeloeil::_;
+    ALLOW_CALL(terminal, render_snake(_));
+    ALLOW_CALL(terminal, render_fruits(_));
+    ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
+
+    trompeloeil::sequence seq;
+    REQUIRE_CALL(terminal, render_snake(_)).IN_SEQUENCE(seq);
+    REQUIRE_CALL(terminal, render_fruits(_)).IN_SEQUENCE(seq);
+    REQUIRE_CALL(terminal, read_key()).IN_SEQUENCE(seq).RETURN(Terminal::Key::Up);
+    REQUIRE_CALL(terminal, render_snake(_)).IN_SEQUENCE(seq);
+    REQUIRE_CALL(terminal, render_fruits(_)).IN_SEQUENCE(seq);
+    REQUIRE_CALL(terminal, read_key()).IN_SEQUENCE(seq).RETURN(Terminal::Key::Up);
+
     game.run();
 }
