@@ -44,16 +44,14 @@ TEST_CASE("Snake", "[Snake][Construction]")
     }
 }
 
-TEST_CASE("Snake's move")
+TEST_CASE("Snake's move", "[Snake][Move]")
 {
-    Snake snake = { Point(5, 5) };
+    Snake snake = {Point(5, 5)};
 
-    auto params = GENERATE(table<Direction, Snake>({
-        {Direction::Up, Snake{Point(5,4)}},
-        {Direction::Down, Snake{Point(5,6)}},
-        {Direction::Left, Snake{Point(4,5)}},
-        {Direction::Right, Snake{Point(6,5)}}
-    }));
+    auto params = GENERATE(table<Direction, Snake>({{Direction::Up, Snake{Point(5, 4)}},
+        {Direction::Down, Snake{Point(5, 6)}},
+        {Direction::Left, Snake{Point(4, 5)}},
+        {Direction::Right, Snake{Point(6, 5)}}}));
 
     auto [direction, expected_snake] = params;
 
@@ -69,6 +67,34 @@ TEST_CASE("Snake's move")
         SECTION("direction is set")
         {
             REQUIRE(snake.direction() == direction);
+        }
+    }
+}
+
+TEST_CASE("Hitting a wall")
+{
+    Board board(10, 10);
+
+    auto params = GENERATE(table<Direction, Snake>({{Direction::Up, Snake{Point(5, 1)}},
+        {Direction::Down, Snake{Point(5, 9)}},
+        {Direction::Left, Snake{Point(1, 5)}},
+        {Direction::Right, Snake{Point(9, 5)}}}));
+
+    auto [direction, snake] = params;
+
+    snake.set_board(board);
+    CHECK(snake.is_alive());
+
+    DYNAMIC_SECTION("moving in " << Catch::StringMaker<Direction>::convert(direction) << " direction")
+    {
+        SECTION("when snake hits the wall")
+        {
+            snake.move(direction);
+
+            SECTION("snake dies")
+            {
+                REQUIRE(snake.is_alive() == false);
+            }
         }
     }
 }
@@ -107,4 +133,3 @@ TEST_CASE("Starting the game", "[SnakeGame][Start]")
         }
     }
 }
-

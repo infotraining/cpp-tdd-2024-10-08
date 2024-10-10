@@ -12,7 +12,7 @@
 
 struct Point
 {
-    Point(int x = 0, int y= 0)
+    Point(int x = 0, int y = 0)
         : x{x}
         , y{y}
     {
@@ -34,14 +34,38 @@ struct Point
 
 enum class Direction
 {
-    Up, Down, Left, Right
+    Up,
+    Down,
+    Left,
+    Right
+};
+
+class Board
+{
+private:
+    int w_;
+    int h_;
+
+public:
+    Board(int w, int h)
+        : w_{w}
+        , h_{h}
+    {
+    }
+
+    bool is_hitting_wall(Point head)
+    {
+        return head.x == 0 || head.y == 0 || head.x == w_ || head.y == h_;
+    }
 };
 
 class Snake
 {
 private:
     std::vector<Point> segments_;
-    Direction direction_;
+    Direction direction_ = Direction::Up;
+    Board* board_{};
+    bool is_alive_ = true;
 
 public:
     explicit Snake(Point head)
@@ -52,6 +76,16 @@ public:
     Snake(std::initializer_list<Point> segments)
         : segments_{segments}
     {
+    }
+
+    void set_board(Board& board)
+    {
+        board_ = &board;
+    }
+
+    bool is_alive() const
+    {
+        return is_alive_;
     }
 
     const Point& head() const
@@ -79,21 +113,27 @@ public:
         direction_ = direction;
 
         Point new_head = calculate_new_head(direction);
-        
+
         segments_.insert(segments_.begin(), new_head);
         segments_.pop_back();
+
+        if (board_ && board_->is_hitting_wall(new_head))
+        {
+            is_alive_ = false;
+        }
     }
 
     friend std::ostream& operator<<(std::ostream& out, const Snake& snake)
     {
         out << "Snake{ ";
 
-        for(const auto& segment : snake.segments_)
+        for (const auto& segment : snake.segments_)
             out << segment << " ";
 
         out << "}";
         return out;
     }
+
 private:
     Point calculate_new_head(Direction direction)
     {
@@ -102,19 +142,19 @@ private:
 
         switch (direction)
         {
-        case Direction::Up :
-            new_head = {old_head.x,old_head.y -1};
+        case Direction::Up:
+            new_head = {old_head.x, old_head.y - 1};
             break;
-        case Direction::Down :
-            new_head = {old_head.x,old_head.y +1};
+        case Direction::Down:
+            new_head = {old_head.x, old_head.y + 1};
             break;
-        case Direction::Left :
-            new_head = {old_head.x -1,old_head.y};
+        case Direction::Left:
+            new_head = {old_head.x - 1, old_head.y};
             break;
-        case Direction::Right :
-            new_head = {old_head.x +1,old_head.y};
+        case Direction::Right:
+            new_head = {old_head.x + 1, old_head.y};
             break;
-        
+
         default:
             break;
         }
