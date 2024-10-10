@@ -250,14 +250,19 @@ public:
         return snake_;
     }
 
+    bool is_over() const
+    {
+        return !snake_.is_alive();
+    }
+
     void run()
     {
         assert(terminal_);
 
         while (true)
         {
-            terminal_->render_snake(snake_);
             terminal_->render_fruits(board_.fruits());
+            terminal_->render_snake(snake_);
 
             Terminal::Key key = terminal_->read_key();
 
@@ -278,6 +283,9 @@ public:
                 case Terminal::Key::Ctrl_Q:
                     return;                
             }
+
+            if (is_over())
+                return;
         }
     }
 };

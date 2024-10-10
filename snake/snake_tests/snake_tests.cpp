@@ -238,12 +238,9 @@ TEST_CASE("Run Loops until Ctrl-Q")
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
 
     trompeloeil::sequence seq;
-    REQUIRE_CALL(terminal, render_snake(_)).IN_SEQUENCE(seq);
-    REQUIRE_CALL(terminal, render_fruits(_)).IN_SEQUENCE(seq);
-    REQUIRE_CALL(terminal, read_key()).IN_SEQUENCE(seq).RETURN(Terminal::Key::Up);
-    REQUIRE_CALL(terminal, render_snake(_)).IN_SEQUENCE(seq);
-    REQUIRE_CALL(terminal, render_fruits(_)).IN_SEQUENCE(seq);
-    REQUIRE_CALL(terminal, read_key()).IN_SEQUENCE(seq).RETURN(Terminal::Key::Up);
+    REQUIRE_CALL(terminal, render_snake(_)).TIMES(2);
+    REQUIRE_CALL(terminal, render_fruits(_)).TIMES(2);
+    REQUIRE_CALL(terminal, read_key()).TIMES(2).RETURN(Terminal::Key::Up);
 
     game.run();
 }
@@ -265,4 +262,25 @@ TEST_CASE("SnakeGame - key moves snake")
     game.run();
 
     REQUIRE(game.snake() == Snake{Point(9, 10)});
+}
+
+
+TEST_CASE("SnakeGame - when snake hits the wall - the game is over", "[SnakeGame][Run][GameOver]")
+{
+    Board board(20, 20);   
+    SnakeGame game(board);
+    CHECK(game.is_over() == false);
+    MockTerminal terminal;
+    game.set_terminal(terminal);
+
+    using trompeloeil::_;
+    ALLOW_CALL(terminal, render_snake(_));
+    ALLOW_CALL(terminal, render_fruits(_));
+    ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Up);
+
+    REQUIRE_CALL(terminal, read_key()).RETURN(Terminal::Key::Left).TIMES(10);
+
+    game.run();
+
+    REQUIRE(game.is_over() == true);
 }
