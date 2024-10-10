@@ -36,12 +36,12 @@ TEST_CASE("Filling order - behaviour verification")
         Order order{talisker, 50};
 
         ALLOW_CALL(warehouse, has_inventory(talisker, 50)).RETURN(true);
-        ALLOW_CALL(warehouse, remove(_, _));
 
         SECTION("When filling the orderOrder")
         {
             SECTION("Order is filled")
             {
+                ALLOW_CALL(warehouse, remove(_, _));
                 order.fill(warehouse);
 
                 REQUIRE(order.is_filled());
@@ -49,7 +49,7 @@ TEST_CASE("Filling order - behaviour verification")
 
             SECTION("Stock is transferred from warehouse")
             {
-                REQUIRE_CALL(warehouse, remove(talisker, 50)).TIMES(1);
+                REQUIRE_CALL(warehouse, remove(talisker, 50)).TIMES(1); // BEHAVIORAL ASSERT
 
                 order.fill(warehouse);
             }
