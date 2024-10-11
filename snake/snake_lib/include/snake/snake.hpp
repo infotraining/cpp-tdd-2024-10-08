@@ -137,6 +137,11 @@ public:
         return direction_;
     }
 
+    void set_direction(Direction direction)
+    {
+        direction_ = direction;
+    }
+
     bool operator==(const Snake& other) const
     {
         return segments_ == other.segments_;
@@ -240,9 +245,21 @@ public:
         snake_.set_board(board_);
     }
 
+    SnakeGame(Board board, Snake snake)
+        : board_{std::move(board)}
+        , snake_{std::move(snake)}
+    {
+        snake_.set_board(board_);
+    }
+
     void set_terminal(Terminal& terminal)
     {
         terminal_ = &terminal;
+    }
+    
+    const Board& board() const
+    {
+        return board_;
     }
 
     const Snake& snake() const

@@ -1,4 +1,5 @@
 #include "snake/snake.hpp"
+#include "snake_game_builder.hpp"
 
 #include <algorithm>
 #include <catch2/catch_test_macros.hpp>
@@ -101,7 +102,7 @@ TEST_CASE("Hitting a wall", "[Snake][Board]")
     }
 }
 
-TEST_CASE("Snake eats itself")
+TEST_CASE("Snake eats itself", "[Snake]")
 {
     Snake snake = {Point(5, 6), Point(6, 6), Point(7, 6), Point(7, 5), Point(6, 5), Point(5, 5), Point(4, 5)};
     CHECK(snake.is_alive());
@@ -181,18 +182,19 @@ public:
 
 TEST_CASE("Rendering the snake", "[ConsoleGame][Terminal][Run]")
 {
-    constexpr int width = 30;
-    constexpr int height = 20;
-
-    SnakeGame game(width, height);
     MockTerminal terminal;
-    game.set_terminal(terminal);
+
+    SnakeGame game = SnakeGameBuilder{}
+                         .with_board(20, 20)
+                         .with_snake(Snake{Point(15, 10)})
+                         .with_terminal(terminal)
+                         .build();
 
     // requirements
     ALLOW_CALL(terminal, render_fruits(trompeloeil::_));
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
     REQUIRE_CALL(terminal, render_snake(Snake{Point{15, 10}}));
-    
+
     game.run();
 } // validation of requirements (assert on mock)
 
@@ -201,10 +203,14 @@ TEST_CASE("Rendering apples", "[ConsoleGame][Terminal][Run]")
     Board board(20, 20);
     board.add_fruit({2, 2});
     board.add_fruit({3, 3});
-    
-    SnakeGame game(board);
+
     MockTerminal terminal;
-    game.set_terminal(terminal);
+
+    SnakeGame game = SnakeGameBuilder{}
+                         .with_board(board)
+                         .with_snake(Snake{Point(15, 10)})
+                         .with_terminal(terminal)
+                         .build();
 
     ALLOW_CALL(terminal, render_snake(trompeloeil::_));
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
@@ -214,10 +220,11 @@ TEST_CASE("Rendering apples", "[ConsoleGame][Terminal][Run]")
 
 TEST_CASE("Run reads key", "[ConsoleGame][Terminal][Run]")
 {
-    Board board(20, 20);   
-    SnakeGame game(board);
     MockTerminal terminal;
-    game.set_terminal(terminal);
+
+    SnakeGame game = SnakeGameBuilder{}
+                         .with_terminal(terminal)
+                         .build();
 
     ALLOW_CALL(terminal, render_fruits(trompeloeil::_));
     ALLOW_CALL(terminal, render_snake(trompeloeil::_));
@@ -225,9 +232,9 @@ TEST_CASE("Run reads key", "[ConsoleGame][Terminal][Run]")
     game.run();
 }
 
-TEST_CASE("Run Loops until Ctrl-Q")
+TEST_CASE("Run Loops until Ctrl-Q", "[ConsoleGame][Terminal][Run][Loop]")
 {
-    Board board(20, 20);   
+    Board board(20, 20);
     SnakeGame game(board);
     MockTerminal terminal;
     game.set_terminal(terminal);
@@ -245,40 +252,48 @@ TEST_CASE("Run Loops until Ctrl-Q")
     game.run();
 }
 
-TEST_CASE("SnakeGame - key moves snake")
+TEST_CASE("When key is pressed - snake moves in given direction", "[SnakeGame][Run][Move]")
 {
-    Board board(20, 20);   
-    SnakeGame game(board);
+    auto params = GENERATE(table<Terminal::Key, Snake>({{Terminal::Key::Up, Snake{Point(5, 4)}},
+        {Terminal::Key::Down, Snake{Point(5, 6)}},
+        {Terminal::Key::Left, Snake{Point(4, 5)}},
+        {Terminal::Key::Right, Snake{Point(6, 5)}}}));
+
+    auto [key, expected_snake] = params;
+
     MockTerminal terminal;
-    game.set_terminal(terminal);
+
+    SnakeGame game = SnakeGameBuilder{}
+                         .with_board(10, 10)
+                         .with_snakes_direction(Direction::Up)
+                         .with_terminal(terminal)
+                         .build();
 
     using trompeloeil::_;
     ALLOW_CALL(terminal, render_snake(_));
     ALLOW_CALL(terminal, render_fruits(_));
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
 
-    REQUIRE_CALL(terminal, read_key()).RETURN(Terminal::Key::Left);
+    REQUIRE_CALL(terminal, read_key()).RETURN(key);
 
     game.run();
 
-    REQUIRE(game.snake() == Snake{Point(9, 10)});
+    REQUIRE(game.snake() == expected_snake);
 }
-
 
 TEST_CASE("SnakeGame - when snake hits the wall - the game is over", "[SnakeGame][Run][GameOver]")
 {
-    Board board(20, 20);   
-    SnakeGame game(board);
-    CHECK(game.is_over() == false);
     MockTerminal terminal;
-    game.set_terminal(terminal);
+    SnakeGame game = SnakeGameBuilder{}
+                         .with_terminal(terminal)
+                         .build();
 
     using trompeloeil::_;
     ALLOW_CALL(terminal, render_snake(_));
     ALLOW_CALL(terminal, render_fruits(_));
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Up);
 
-    REQUIRE_CALL(terminal, read_key()).RETURN(Terminal::Key::Left).TIMES(10);
+    REQUIRE_CALL(terminal, read_key()).RETURN(Terminal::Key::Left).TIMES(5);
 
     game.run();
 
