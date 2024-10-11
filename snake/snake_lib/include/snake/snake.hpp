@@ -76,7 +76,7 @@ public:
         fruits_.push_back(point);
     }
 
-    const std::vector<Point>& fruits()
+    const std::vector<Point>& fruits() const
     {
         return fruits_;
     }
@@ -219,7 +219,9 @@ public:
 
     virtual void render_snake(const Snake& snake) = 0;
     virtual void render_fruits(const std::vector<Point>& fruits) = 0;
+    virtual void render_text(int x, int y, const std::string& text) = 0;
     virtual Key read_key() = 0;
+    virtual void flush() = 0;
     virtual ~Terminal() { }
 };
 
@@ -267,6 +269,19 @@ public:
         return snake_;
     }
 
+    void populate_with_fruits(size_t count)
+    {
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<> x_distr(1, board_.width() - 1);
+        std::uniform_int_distribution<> y_distr(1, board_.height() - 1);
+
+        for (size_t i = 0; i < count; ++i)
+        {
+            board_.add_fruit({x_distr(gen), y_distr(gen)});
+        }
+    }
+
     bool is_over() const
     {
         return !snake_.is_alive();
@@ -276,7 +291,7 @@ public:
     {
         assert(terminal_);
 
-        while (true)
+        while (!is_over())
         {
             terminal_->render_fruits(board_.fruits());
             terminal_->render_snake(snake_);
@@ -302,7 +317,12 @@ public:
             }
 
             if (is_over())
-                return;
+            {
+                std::string message = "GAME OVER !";
+                terminal_->render_text(board_.width() / 2 - message.size() / 2, board_.height() / 2, message);                
+            }
+
+            terminal_->flush();
         }
     }
 };

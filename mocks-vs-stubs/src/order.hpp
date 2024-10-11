@@ -22,7 +22,7 @@ public:
     {
         if (warehouse.has_inventory(product_, quantity_))
         {
-            //warehouse.remove(product_, quantity_);
+            warehouse.remove(product_, quantity_);
 
             is_filled_ = true;
         }

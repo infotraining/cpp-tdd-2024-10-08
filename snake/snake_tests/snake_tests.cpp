@@ -177,7 +177,9 @@ class MockTerminal : public Terminal
 public:
     MAKE_MOCK1(render_snake, void(const Snake&), override);
     MAKE_MOCK1(render_fruits, void(const std::vector<Point>& fruits), override);
+    MAKE_MOCK3(render_text, void(int x, int y, const std::string& text), override);
     MAKE_MOCK0(read_key, Terminal::Key(), override);
+    MAKE_MOCK0(flush, void(), override);
 };
 
 TEST_CASE("Rendering the snake", "[ConsoleGame][Terminal][Run]")
@@ -192,6 +194,7 @@ TEST_CASE("Rendering the snake", "[ConsoleGame][Terminal][Run]")
 
     // requirements
     ALLOW_CALL(terminal, render_fruits(trompeloeil::_));
+    ALLOW_CALL(terminal, flush());
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
     REQUIRE_CALL(terminal, render_snake(Snake{Point{15, 10}}));
 
@@ -213,6 +216,7 @@ TEST_CASE("Rendering apples", "[ConsoleGame][Terminal][Run]")
                          .build();
 
     ALLOW_CALL(terminal, render_snake(trompeloeil::_));
+    ALLOW_CALL(terminal, flush());
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
     REQUIRE_CALL(terminal, render_fruits(std::vector{Point{2, 2}, Point{3, 3}}));
     game.run();
@@ -228,6 +232,7 @@ TEST_CASE("Run reads key", "[ConsoleGame][Terminal][Run]")
 
     ALLOW_CALL(terminal, render_fruits(trompeloeil::_));
     ALLOW_CALL(terminal, render_snake(trompeloeil::_));
+    ALLOW_CALL(terminal, flush());
     REQUIRE_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
     game.run();
 }
@@ -242,11 +247,13 @@ TEST_CASE("Run Loops until Ctrl-Q", "[ConsoleGame][Terminal][Run][Loop]")
     using trompeloeil::_;
     ALLOW_CALL(terminal, render_snake(_));
     ALLOW_CALL(terminal, render_fruits(_));
+    ALLOW_CALL(terminal, flush());
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
 
     trompeloeil::sequence seq;
     REQUIRE_CALL(terminal, render_snake(_)).TIMES(2);
     REQUIRE_CALL(terminal, render_fruits(_)).TIMES(2);
+    REQUIRE_CALL(terminal, flush()).TIMES(2);
     REQUIRE_CALL(terminal, read_key()).TIMES(2).RETURN(Terminal::Key::Up);
 
     game.run();
@@ -272,6 +279,7 @@ TEST_CASE("When key is pressed - snake moves in given direction", "[SnakeGame][R
     using trompeloeil::_;
     ALLOW_CALL(terminal, render_snake(_));
     ALLOW_CALL(terminal, render_fruits(_));
+    ALLOW_CALL(terminal, flush());
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Ctrl_Q);
 
     REQUIRE_CALL(terminal, read_key()).RETURN(key);
@@ -291,6 +299,8 @@ TEST_CASE("SnakeGame - when snake hits the wall - the game is over", "[SnakeGame
     using trompeloeil::_;
     ALLOW_CALL(terminal, render_snake(_));
     ALLOW_CALL(terminal, render_fruits(_));
+    ALLOW_CALL(terminal, render_text(_, _, _));
+    ALLOW_CALL(terminal, flush());
     ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Up);
 
     REQUIRE_CALL(terminal, read_key()).RETURN(Terminal::Key::Left).TIMES(5);
@@ -298,4 +308,37 @@ TEST_CASE("SnakeGame - when snake hits the wall - the game is over", "[SnakeGame
     game.run();
 
     REQUIRE(game.is_over() == true);
+}
+
+TEST_CASE("SnakeGame - when game end - GAME OVER ! is rendered", "[SnakeGame][Run][GameOver]")
+{
+    MockTerminal terminal;
+    SnakeGame game = SnakeGameBuilder{}
+                         .with_board(30, 20)
+                         .with_terminal(terminal)
+                         .build();
+
+    using trompeloeil::_;
+    ALLOW_CALL(terminal, render_snake(_));
+    ALLOW_CALL(terminal, render_fruits(_));
+    ALLOW_CALL(terminal, flush());
+    ALLOW_CALL(terminal, read_key()).RETURN(Terminal::Key::Up);
+
+    REQUIRE_CALL(terminal, render_text(10, 10, "GAME OVER !")).TIMES(1);
+
+    game.run();
+
+    CHECK(game.is_over() == true);
+}
+
+
+TEST_CASE("Populate the game with fruits", "[SnakeGame]")
+{
+    SnakeGame game = SnakeGameBuilder{}
+                    .with_board(20, 20)
+                    .build();
+
+    game.populate_with_fruits(5);
+
+    REQUIRE(game.board().fruits().size() == 5);
 }
